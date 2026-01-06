@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            binary_name: rc
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            binary_name: rc
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            binary_name: rc
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            binary_name: rc
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            binary_name: rc.exe
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Get build time
+        id: get_build_time
+        run: echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Get git commit
+        id: get_git_commit
+        run: echo "GIT_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          BUILD_TIME: ${{ steps.get_build_time.outputs.BUILD_TIME }}
+          GIT_COMMIT: ${{ steps.get_git_commit.outputs.GIT_COMMIT }}
+        run: |
+          go build -ldflags "-X react-cli/internal/version.Version=${VERSION} -X react-cli/internal/version.BuildTime=${BUILD_TIME} -X react-cli/internal/version.GitCommit=${GIT_COMMIT}" -o ${{ matrix.binary_name }} .
+
+      - name: Create archive
+        shell: bash
+        run: |
+          if [ "${{ matrix.goos }}" == "windows" ]; then
+            zip rc-${{ matrix.goos }}-${{ matrix.goarch }}.zip ${{ matrix.binary_name }}
+          else
+            tar -czf rc-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz ${{ matrix.binary_name }}
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            rc-${{ matrix.goos }}-${{ matrix.goarch }}.*
+            ${{ matrix.binary_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## Release ${{ steps.get_version.outputs.VERSION }}
+
+            ### Installation
+
+            **Unix/macOS/Linux:**
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | sh
+            ```
+
+            **Windows (PowerShell):**
+            ```powershell
+            iwr -useb https://raw.githubusercontent.com/${{ github.repository }}/main/install.ps1 | iex
+            ```
+
+            ### Downloads
+
+            Download the binary for your platform from the assets below.
+          draft: false
+          prerelease: false

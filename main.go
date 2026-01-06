@@ -9,8 +9,9 @@ import (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "rc",
-		Short: "React CLI - Generate React component",
+		Use:     "rc",
+		Short:   "React CLI - Generate React component",
+		Version: Version,
 	}
 
 	// Get the generate command from cmd package
@@ -19,6 +20,9 @@ func main() {
 
 	initCmd := cmd.InitCmd()
 	rootCmd.AddCommand(initCmd)
+
+	versionCmd := cmd.VersionCmd()
+	rootCmd.AddCommand(versionCmd)
 
 	// Execute the root command
 	if err := rootCmd.Execute(); err != nil {

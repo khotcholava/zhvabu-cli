@@ -1,0 +1,49 @@
+{
+  "name": "react-cli",
+  "version": "0.1.0",
+  "description": "React CLI - Generate React components with ease",
+  "main": "index.js",
+  "bin": {
+    "rc": "./bin/rc",
+    "react-cli": "./bin/rc"
+  },
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "prepublishOnly": "node scripts/prepublish.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khotcholava/zhvabu-cli.git"
+  },
+  "keywords": [
+    "react",
+    "cli",
+    "component",
+    "generator",
+    "scaffold",
+    "boilerplate"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "files": [
+    "bin/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

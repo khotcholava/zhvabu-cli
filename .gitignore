@@ -1,1 +1,5 @@
 .cursor/
+dist/
+bin/
+*.exe
+react-cli.json
