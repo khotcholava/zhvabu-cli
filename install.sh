@@ -51,9 +51,19 @@ detect_platform() {
 # Get latest version from GitHub API
 get_latest_version() {
     if [ "$VERSION" = "latest" ]; then
-        curl -s "https://api.github.com/repos/${REPO}/releases/latest" | \
+        VERSION_TAG=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | \
         grep '"tag_name":' | \
-        sed -E 's/.*"([^"]+)".*/\1/'
+        sed -E 's/.*"([^"]+)".*/\1/')
+        
+        # Check if version tag is empty (no releases yet)
+        if [ -z "$VERSION_TAG" ]; then
+            echo -e "${RED}No releases found for ${REPO}${NC}" >&2
+            echo -e "${YELLOW}Please create a release first, or specify a version:${NC}" >&2
+            echo -e "${YELLOW}  $0 v0.1.0${NC}" >&2
+            exit 1
+        fi
+        
+        echo "$VERSION_TAG"
     else
         echo "$VERSION"
     fi
@@ -66,6 +76,12 @@ install_binary() {
     ARCH=$(echo $PLATFORM | cut -d'/' -f2)
     
     VERSION_TAG=$(get_latest_version)
+    
+    # Validate version tag is not empty
+    if [ -z "$VERSION_TAG" ]; then
+        echo -e "${RED}Error: Version tag is empty${NC}"
+        exit 1
+    fi
     
     echo -e "${GREEN}Installing ${BINARY_NAME} ${VERSION_TAG} for ${OS}/${ARCH}...${NC}"
     
@@ -90,6 +106,11 @@ install_binary() {
     # Download
     if ! curl -fsSL "$DOWNLOAD_URL" -o "${TEMP_DIR}/${BINARY_NAME}-${OS}-${ARCH}.${EXT}"; then
         echo -e "${RED}Failed to download binary${NC}"
+        echo -e "${YELLOW}URL: ${DOWNLOAD_URL}${NC}"
+        echo -e "${YELLOW}This might mean:${NC}"
+        echo -e "${YELLOW}  1. The release ${VERSION_TAG} doesn't exist yet${NC}"
+        echo -e "${YELLOW}  2. The binary for ${OS}/${ARCH} wasn't uploaded${NC}"
+        echo -e "${YELLOW}  3. Check available releases at: https://github.com/${REPO}/releases${NC}"
         exit 1
     fi
     
