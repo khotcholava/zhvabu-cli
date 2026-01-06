@@ -89,13 +89,18 @@ install_binary() {
     if [ "$OS" = "windows" ]; then
         EXT="zip"
         BINARY_FILE="${BINARY_NAME}.exe"
+        ARCHIVE_NAME="${BINARY_NAME}-${OS}-${ARCH}.${EXT}"
+        ALT_ARCHIVE_NAME="${BINARY_NAME}-${OS}-${ARCH}"
     else
         EXT="tar.gz"
         BINARY_FILE="${BINARY_NAME}"
+        ARCHIVE_NAME="${BINARY_NAME}-${OS}-${ARCH}.${EXT}"
+        ALT_ARCHIVE_NAME="${BINARY_NAME}-${OS}-${ARCH}"
     fi
     
-    # Download URL
-    DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION_TAG}/${BINARY_NAME}-${OS}-${ARCH}.${EXT}"
+    # Download URL (try with extension first, then without)
+    DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION_TAG}/${ARCHIVE_NAME}"
+    ALT_DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION_TAG}/${ALT_ARCHIVE_NAME}"
     
     # Create temp directory
     TEMP_DIR=$(mktemp -d)
@@ -103,10 +108,22 @@ install_binary() {
     
     echo -e "${YELLOW}Downloading from ${DOWNLOAD_URL}...${NC}"
     
-    # Download
-    if ! curl -fsSL "$DOWNLOAD_URL" -o "${TEMP_DIR}/${BINARY_NAME}-${OS}-${ARCH}.${EXT}"; then
+    # Download (try with extension first)
+    DOWNLOAD_SUCCESS=false
+    if curl -fsSL "$DOWNLOAD_URL" -o "${TEMP_DIR}/${ARCHIVE_NAME}" 2>/dev/null; then
+        DOWNLOAD_SUCCESS=true
+        DOWNLOADED_FILE="${ARCHIVE_NAME}"
+    elif curl -fsSL "$ALT_DOWNLOAD_URL" -o "${TEMP_DIR}/${ALT_ARCHIVE_NAME}" 2>/dev/null; then
+        DOWNLOAD_SUCCESS=true
+        DOWNLOADED_FILE="${ALT_ARCHIVE_NAME}"
+        echo -e "${YELLOW}Downloaded without extension, trying to extract...${NC}"
+    fi
+    
+    if [ "$DOWNLOAD_SUCCESS" = false ]; then
         echo -e "${RED}Failed to download binary${NC}"
-        echo -e "${YELLOW}URL: ${DOWNLOAD_URL}${NC}"
+        echo -e "${YELLOW}Tried URLs:${NC}"
+        echo -e "${YELLOW}  1. ${DOWNLOAD_URL}${NC}"
+        echo -e "${YELLOW}  2. ${ALT_DOWNLOAD_URL}${NC}"
         echo -e "${YELLOW}This might mean:${NC}"
         echo -e "${YELLOW}  1. The release ${VERSION_TAG} doesn't exist yet${NC}"
         echo -e "${YELLOW}  2. The binary for ${OS}/${ARCH} wasn't uploaded${NC}"
@@ -114,12 +131,38 @@ install_binary() {
         exit 1
     fi
     
-    # Extract
+    # Extract or copy binary
     cd "$TEMP_DIR"
-    if [ "$EXT" = "zip" ]; then
-        unzip -q "${BINARY_NAME}-${OS}-${ARCH}.${EXT}"
-    else
-        tar -xzf "${BINARY_NAME}-${OS}-${ARCH}.${EXT}"
+    
+    # Check if downloaded file is already a binary or an archive
+    if [ -f "${ARCHIVE_NAME}" ]; then
+        # Check file type
+        FILE_TYPE=$(file -b "${ARCHIVE_NAME}")
+        if echo "$FILE_TYPE" | grep -qE "(gzip|Zip archive|tar)"; then
+            # It's an archive, extract it
+            if [ "$EXT" = "zip" ]; then
+                unzip -q "${ARCHIVE_NAME}"
+            else
+                tar -xzf "${ARCHIVE_NAME}"
+            fi
+        else
+            # It's already a binary, just copy it
+            cp "${ARCHIVE_NAME}" "${BINARY_FILE}"
+        fi
+    elif [ -f "${ALT_ARCHIVE_NAME}" ]; then
+        # File downloaded without extension
+        FILE_TYPE=$(file -b "${ALT_ARCHIVE_NAME}")
+        if echo "$FILE_TYPE" | grep -qE "(gzip|Zip archive|tar)"; then
+            # It's an archive, extract it
+            if [ "$EXT" = "zip" ]; then
+                unzip -q "${ALT_ARCHIVE_NAME}"
+            else
+                tar -xzf "${ALT_ARCHIVE_NAME}"
+            fi
+        else
+            # It's already a binary, just copy it
+            cp "${ALT_ARCHIVE_NAME}" "${BINARY_FILE}"
+        fi
     fi
     
     # Check if binary exists

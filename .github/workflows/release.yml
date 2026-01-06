@@ -78,7 +78,8 @@ jobs:
         with:
           name: rc-${{ matrix.goos }}-${{ matrix.goarch }}
           path: |
-            rc-${{ matrix.goos }}-${{ matrix.goarch }}.*
+            rc-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+            rc-${{ matrix.goos }}-${{ matrix.goarch }}.zip
             ${{ matrix.binary_name }}
 
   release:
@@ -103,7 +104,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/**/*
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+            artifacts/**/*.exe
           tag_name: ${{ steps.get_version.outputs.VERSION }}
           name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
