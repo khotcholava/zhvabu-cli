@@ -5,4 +5,3 @@ var (
 	BuildTime = "unknown"
 	GitCommit = "unknown"
 )
-

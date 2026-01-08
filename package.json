@@ -1,6 +1,6 @@
 {
   "name": "react-cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "React CLI - Generate React components with ease",
   "main": "index.js",
   "bin": {

@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.png" alt="React CLI Logo" width="200">
+</div>
+
 # React CLI
 
 A command-line tool for generating React TypeScript components with boilerplate code.
@@ -90,6 +94,9 @@ rc generate component <ComponentName> ["<props>"]
 - `--path <path>` - Path where to create component
 - `--prefix <prefix>` - Prefix for component name
 - `--skip-style` - Skip style file creation
+- `--memo` - Wrap component with React.memo()
+- `--forward-ref` - Wrap component with React.forwardRef()
+- `--class` - Generate class component instead of functional
 
 **Examples:**
 
@@ -105,6 +112,18 @@ rc generate component Card --style scss --path src/components
 
 # With prefix
 rc generate component Modal --prefix App
+
+# With React.memo() wrapper
+rc generate component Button --memo "onClick"
+
+# With forwardRef wrapper
+rc generate component Input --forward-ref "value, onChange"
+
+# Class component
+rc generate component Card --class "title"
+
+# Combined: memo + forwardRef
+rc generate component Modal --memo --forward-ref "isOpen, onClose"
 ```
 
 ### Initialize Config
@@ -128,9 +147,11 @@ rc --version
 - ✅ Generate React TypeScript components
 - ✅ Configurable style files (CSS, SCSS, SASS)
 - ✅ Project-level configuration
-- ✅ Props type generation
+- ✅ Props type generation with validation
 - ✅ Component folder structure
 - ✅ Index file exports
+- ✅ Component variants (memo, forwardRef, class)
+- ✅ Props validation (prevents invalid prop names)
 
 ## Development
 

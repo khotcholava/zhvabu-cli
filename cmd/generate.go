@@ -37,6 +37,9 @@ func ComponentCmd() *cobra.Command {
 			path, _ := cmd.Flags().GetString("path")
 			skipStyle, _ := cmd.Flags().GetBool("skip-style")
 			prefix, _ := cmd.Flags().GetString("prefix")
+			memo, _ := cmd.Flags().GetBool("memo")
+			forwardRef, _ := cmd.Flags().GetBool("forward-ref")
+			class, _ := cmd.Flags().GetBool("class")
 
 			// Read config
 			cfg, err := config.ReadConfig()
@@ -66,8 +69,24 @@ func ComponentCmd() *cobra.Command {
 				finalPrefix = prefix
 			}
 
+			finalMemo := cfg.Defaults.Component.Memo
+			if memo {
+				finalMemo = true
+			}
+
+			finalForwardRef := cfg.Defaults.Component.ForwardRef
+			if forwardRef {
+				finalForwardRef = true
+			}
+
+			finalClass := cfg.Defaults.Component.Class
+			if class {
+				finalClass = true
+			}
+
 			componentName := args[0]
 			finalComponentName := componentName
+
 			// Add prefix to component name if prefix is set
 			if finalPrefix != "" {
 				finalComponentName = fmt.Sprintf("%s%s",
@@ -97,7 +116,7 @@ func ComponentCmd() *cobra.Command {
 			}
 
 			// Generate component content
-			componentContent := generator.GenerateComponentContent(finalComponentName, parseProps, finalStyle)
+			componentContent := generator.GenerateComponentContent(finalComponentName, parseProps, finalStyle, finalMemo, finalForwardRef, finalClass)
 
 			// Create directory
 			err = os.MkdirAll(fullPath, 0755)
@@ -139,6 +158,9 @@ func ComponentCmd() *cobra.Command {
 	componentCmd.Flags().String("prefix", "", "Prefix to add to component name")
 	componentCmd.Flags().Bool("skip-tests", false, "Skip test file generation")
 	componentCmd.Flags().Bool("skip-style", false, "Skip style file generation")
+	componentCmd.Flags().Bool("memo", false, "Wrap component with React.memo()")
+	componentCmd.Flags().Bool("forward-ref", false, "Wrap component with forwardRef()")
+	componentCmd.Flags().Bool("class", false, "Generate class component instead of functional component")
 
 	return componentCmd
 }

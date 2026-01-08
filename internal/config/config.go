@@ -19,6 +19,9 @@ type ComponentDefaults struct {
 	Path           string `json:"path"`
 	SkipStyle      bool   `json:"skipStyle"`
 	ComponentStyle string `json:"componentStyle"`
+	Memo           bool   `json:"memo"`
+	ForwardRef     bool   `json:"forwardRef"`
+	Class          bool   `json:"class"`
 }
 
 type Project struct {
@@ -68,6 +71,9 @@ func GetDefaultConfig() *Config {
 				Path:           ".",
 				SkipStyle:      false,
 				ComponentStyle: "functional",
+				Memo:           false,
+				ForwardRef:     false,
+				Class:          false,
 			},
 		},
 		Project: Project{

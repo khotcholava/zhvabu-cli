@@ -6,7 +6,7 @@
 class ReactCli < Formula
   desc "React CLI - Generate React components with ease"
   homepage "https://github.com/khotcholava/zhvabu-cli"
-  version "0.2.0"
+  version "0.3.0"
   license "MIT"
 
   # Update these URLs with your actual GitHub repository
