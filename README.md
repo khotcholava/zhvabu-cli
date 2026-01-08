@@ -18,7 +18,7 @@ curl -fsSL https://raw.githubusercontent.com/khotcholava/zhvabu-cli/main/install
 iwr -useb https://raw.githubusercontent.com/khotcholava/zhvabu-cli/main/install.ps1 | iex
 ```
 
-### Homebrew (macOS/Linux)
+<!-- ### Homebrew (macOS/Linux)
 
 ```bash
 brew tap khotcholava/homebrew-tap
@@ -29,7 +29,7 @@ brew install react-cli
 
 ```bash
 npm install -g react-cli
-```
+``` -->
 
 ### Manual Installation
 
