@@ -80,7 +80,13 @@ func ComponentCmd() *cobra.Command {
 				props = args[1]
 			}
 
-			parseProps := parser.ParseProps(props)
+			parseProps, err := parser.ParseProps(props)
+
+			if err != nil {
+				fmt.Printf("Error parsing props: %v\n", err)
+				fmt.Println("Example: rc generate component UserList \"userList, onClick, isActive\"")
+				return
+			}
 
 			// Build full path
 			fullPath := finalPath
